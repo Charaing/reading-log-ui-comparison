@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6f1e9">
+<title>독서 기록</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f1e9; --card:#fffdf9; --ink:#2b2620; --muted:#8a7f72; --line:#e9e1d4;
+  --accent:#c2562f; --accent-soft:#f6e3d9; --track:#efe8dc;
+  --serif:"Noto Serif KR","Nanum Myeongjo",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#1b1916; --card:#252220; --ink:#f1ebe2; --muted:#9c9286; --line:#36312c;
+  --accent:#e57a4f; --accent-soft:#3a2a22; --track:#35302a;
+}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100vh;word-break:keep-all}
+.app{max-width:480px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top)) 20px 120px}
+header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:22px}
+.date{font-size:13px;color:var(--muted);letter-spacing:.02em}
+h1{font-family:var(--serif);font-size:28px;font-weight:700;margin-top:4px}
+
+.stat{background:var(--ink);color:var(--bg);border-radius:22px;padding:22px;display:flex;align-items:center;gap:18px;margin-bottom:30px;position:relative;overflow:hidden}
+.stat::after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:var(--accent);opacity:.18}
+.ring{width:84px;height:84px;flex:none;position:relative}
+.ring svg{transform:rotate(-90deg)}
+.ring .n{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--serif);font-size:26px;font-weight:700}
+.stat .lbl{font-size:13px;opacity:.7}
+.stat .big{font-family:var(--serif);font-size:20px;margin:4px 0 6px}
+.stat .sub{font-size:13px;opacity:.7}
+.stat .sub b{color:var(--accent);opacity:1}
+
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.sec h2{font-family:var(--serif);font-size:18px}
+.sec span{font-size:13px;color:var(--muted)}
+
+.book{display:flex;gap:16px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px;cursor:pointer;transition:transform .15s}
+.book:active{transform:scale(.98)}
+.cover{width:56px;height:80px;flex:none;border-radius:4px 8px 8px 4px;position:relative;display:flex;align-items:flex-end;padding:7px;box-shadow:0 4px 10px rgba(0,0,0,.15),inset 4px 0 0 rgba(0,0,0,.15)}
+.cover i{font-style:normal;font-family:var(--serif);font-size:9px;line-height:1.25;color:rgba(255,255,255,.92);overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+.info{flex:1;min-width:0;display:flex;flex-direction:column}
+.title{font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.author{font-size:13px;color:var(--muted);margin-top:3px}
+.prog{margin-top:auto}
+.prog .row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px}
+.prog .row b{color:var(--accent);font-size:14px}
+.bar{height:6px;border-radius:3px;background:var(--track);overflow:hidden}
+.bar div{height:100%;background:var(--accent);border-radius:3px;transition:width .4s}
+
+.empty{text-align:center;color:var(--muted);padding:40px 20px;border:1.5px dashed var(--line);border-radius:18px;font-size:14px;line-height:1.7}
+
+.done-list{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;scrollbar-width:none}
+.done-list::-webkit-scrollbar{display:none}
+.done-list .cover{width:48px;height:68px;opacity:.9}
+
+.fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom));background:var(--accent);color:#fff;border:0;border-radius:999px;padding:15px 26px;font:700 15px var(--sans);box-shadow:0 8px 24px rgba(194,86,47,.35);cursor:pointer;display:flex;gap:8px;align-items:center}
+.fab:active{transform:translateX(-50%) scale(.96)}
+
+.scrim{position:fixed;inset:0;background:rgba(20,16,12,.45);opacity:0;pointer-events:none;transition:opacity .25s;z-index:10}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;background:var(--card);border-radius:24px 24px 0 0;padding:12px 22px calc(24px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .3s cubic-bezier(.2,.8,.2,1);z-index:11}
+.open .scrim{opacity:1;pointer-events:auto}
+.sheet.show{transform:none}
+.grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 18px}
+.sheet h3{font-family:var(--serif);font-size:20px;margin-bottom:4px}
+.sheet .hint{font-size:13px;color:var(--muted);margin-bottom:20px}
+label{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px}
+input[type=text],input[type=number]{width:100%;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font:16px var(--sans);outline:none}
+input:focus{border-color:var(--accent)}
+.pagebox{display:flex;align-items:center;justify-content:center;gap:12px;margin:10px 0 18px}
+.pagebox button{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:20px;cursor:pointer}
+.pagebox input{width:110px;text-align:center;font:700 30px var(--serif);border:0;background:none;padding:4px}
+.pagebox .of{color:var(--muted);font-size:15px}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px}
+.btns{display:flex;gap:10px;margin-top:22px}
+.btn{flex:1;padding:15px;border-radius:14px;border:0;font:700 15px var(--sans);cursor:pointer}
+.btn.pri{background:var(--accent);color:#fff}
+.btn.sec2{background:var(--accent-soft);color:var(--accent)}
+.del{display:block;margin:16px auto 0;background:none;border:0;color:var(--muted);font-size:13px;text-decoration:underline;cursor:pointer}
+
+.toast{position:fixed;top:calc(16px + env(safe-area-inset-top));left:50%;transform:translate(-50%,-80px);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:999px;font-size:14px;transition:transform .3s;z-index:20;white-space:nowrap}
+.toast.show{transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div><div class="date" id="today"></div><h1>독서 기록</h1></div>
+  </header>
+
+  <section class="stat">
+    <div class="ring">
+      <svg width="84" height="84" viewBox="0 0 84 84">
+        <circle cx="42" cy="42" r="36" fill="none" stroke="currentColor" stroke-opacity=".15" stroke-width="7"/>
+        <circle id="ringArc" cx="42" cy="42" r="36" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="226.2" stroke-dashoffset="226.2" style="transition:stroke-dashoffset .6s"/>
+      </svg>
+      <div class="n" id="doneCount">0</div>
+    </div>
+    <div style="position:relative;z-index:1">
+      <div class="lbl" id="yearLbl"></div>
+      <div class="big" id="doneText"></div>
+      <div class="sub" id="goalText"></div>
+    </div>
+  </section>
+
+  <div class="sec"><h2>읽고 있는 책</h2><span id="readingCount"></span></div>
+  <div id="reading"></div>
+
+  <div id="doneWrap" style="margin-top:28px">
+    <div class="sec"><h2>올해 완독한 책</h2></div>
+    <div class="done-list" id="doneList"></div>
+  </div>
+</div>
+
+<button class="fab" id="addBtn"><span style="font-size:20px;line-height:0">+</span> 책 추가</button>
+
+<div id="layer">
+  <div class="scrim" id="scrim"></div>
+
+  <form class="sheet" id="addSheet" autocomplete="off">
+    <div class="grab"></div>
+    <h3>새 책 추가</h3>
+    <p class="hint">지금 읽기 시작한 책을 기록하세요.</p>
+    <label>제목</label><input type="text" id="aTitle" required placeholder="예: 소년이 온다">
+    <label>저자</label><input type="text" id="aAuthor" placeholder="예: 한강">
+    <label>전체 쪽수</label><input type="number" id="aPages" required min="1" inputmode="numeric" placeholder="예: 216">
+    <div class="btns"><button type="button" class="btn sec2" data-close>취소</button><button class="btn pri">추가하기</button></div>
+  </form>
+
+  <form class="sheet" id="pageSheet">
+    <div class="grab"></div>
+    <h3 id="pTitle"></h3>
+    <p class="hint" id="pAuthor"></p>
+    <div class="pagebox">
+      <button type="button" id="minus">−</button>
+      <div><input type="number" id="pPage" inputmode="numeric" min="0"><div class="of" id="pOf" style="text-align:center"></div></div>
+      <button type="button" id="plus">+</button>
+    </div>
+    <input type="range" id="pRange" min="0">
+    <div class="btns"><button type="button" class="btn sec2" id="finishBtn">다 읽었어요</button><button class="btn pri">저장</button></div>
+    <button type="button" class="del" id="delBtn">이 책 삭제</button>
+  </form>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY='reading-log-v1', GOAL=12, YEAR=new Date().getFullYear();
+const COLORS=['#c2562f','#2f5d62','#6b4e9b','#b08436','#3d6b45','#8c3b4a','#355c8c','#5a4a3f'];
+const $=s=>document.getElementById(s);
+let books, current=null;
+
+function load(){
+  try{books=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+  if(!Array.isArray(books)) books=[
+    {id:1,title:'소년이 온다',author:'한강',pages:216,page:132,color:COLORS[0]},
+    {id:2,title:'사피엔스',author:'유발 하라리',pages:636,page:211,color:COLORS[1]},
+    {id:3,title:'아몬드',author:'손원평',pages:264,page:264,color:COLORS[2],done:Date.now()},
+    {id:4,title:'불편한 편의점',author:'김호연',pages:268,page:268,color:COLORS[3],done:Date.now()},
+  ];
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(books))}catch(e){}}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cover=b=>`<div class="cover" style="background:${b.color}"><i>${esc(b.title)}</i></div>`;
+
+function render(){
+  const reading=books.filter(b=>!b.done);
+  const done=books.filter(b=>b.done&&new Date(b.done).getFullYear()===YEAR).sort((a,b)=>b.done-a.done);
+  $('doneCount').textContent=done.length;
+  $('yearLbl').textContent=`${YEAR}년 독서`;
+  $('doneText').textContent=done.length?`${done.length}권을 완독했어요`:'첫 완독을 기다려요';
+  const left=GOAL-done.length;
+  $('goalText').innerHTML=left>0?`목표 ${GOAL}권까지 <b>${left}권</b> 남음`:`목표 ${GOAL}권 달성! 🎉`;
+  $('ringArc').style.strokeDashoffset=226.2*(1-Math.min(done.length/GOAL,1));
+  $('readingCount').textContent=reading.length?`${reading.length}권`:'';
+  $('reading').innerHTML=reading.length?reading.map(b=>{
+    const pct=Math.round(b.page/b.pages*100);
+    return `<div class="book" data-id="${b.id}">${cover(b)}
+      <div class="info"><div class="title">${esc(b.title)}</div><div class="author">${esc(b.author||'저자 미상')}</div>
+      <div class="prog"><div class="row"><span>${b.page} / ${b.pages}쪽</span><b>${pct}%</b></div><div class="bar"><div style="width:${pct}%"></div></div></div></div></div>`;
+  }).join(''):`<div class="empty">읽고 있는 책이 없어요.<br>아래 <b>책 추가</b>로 시작해 보세요.</div>`;
+  $('doneWrap').style.display=done.length?'':'none';
+  $('doneList').innerHTML=done.map(cover).join('');
+}
+
+function open(sheet){document.body.classList.add('open');$('layer').classList.add('open');sheet.classList.add('show')}
+function close(){$('layer').classList.remove('open');document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('show'))}
+function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),1800)}
+
+$('scrim').onclick=close;
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=close);
+$('addBtn').onclick=()=>{$('addSheet').reset();open($('addSheet'));setTimeout(()=>$('aTitle').focus(),300)};
+$('addSheet').onsubmit=e=>{
+  e.preventDefault();
+  const pages=parseInt($('aPages').value,10), title=$('aTitle').value.trim();
+  if(!title||!(pages>0))return;
+  books.unshift({id:Date.now(),title,author:$('aAuthor').value.trim(),pages,page:0,color:COLORS[books.length%COLORS.length]});
+  save();render();close();toast('책을 추가했어요');
+};
+
+$('reading').onclick=e=>{
+  const el=e.target.closest('.book');if(!el)return;
+  current=books.find(b=>b.id==el.dataset.id);
+  $('pTitle').textContent=current.title;
+  $('pAuthor').textContent=(current.author||'저자 미상')+' · 지금 몇 쪽까지 읽었나요?';
+  $('pOf').textContent=`/ ${current.pages}쪽`;
+  $('pRange').max=$('pPage').max=current.pages;
+  setPage(current.page);open($('pageSheet'));
+};
+function setPage(v){v=Math.max(0,Math.min(current.pages,parseInt(v,10)||0));$('pPage').value=v;$('pRange').value=v}
+$('pRange').oninput=e=>setPage(e.target.value);
+$('pPage').onchange=e=>setPage(e.target.value);
+$('minus').onclick=()=>setPage(+$('pPage').value-1);
+$('plus').onclick=()=>setPage(+$('pPage').value+1);
+function commit(page){
+  const prev=current.page;current.page=page;
+  if(page>=current.pages){current.done=Date.now();toast(`『${current.title}』 완독! 축하해요 📚`)}
+  else toast(page>prev?`+${page-prev}쪽 읽었어요`:'저장했어요');
+  save();render();close();
+}
+$('pageSheet').onsubmit=e=>{e.preventDefault();setPage($('pPage').value);commit(+$('pPage').value)};
+$('finishBtn').onclick=()=>commit(current.pages);
+$('delBtn').onclick=()=>{if(confirm(`『${current.title}』을(를) 삭제할까요?`)){books=books.filter(b=>b!==current);save();render();close();toast('삭제했어요')}};
+
+const d=new Date();
+$('today').textContent=`${d.getMonth()+1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`;
+load();render();
+</script>
+</body>
+</html>

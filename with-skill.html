@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>독서 기록</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+/* 1. 제품: 독서 기록 — 읽은 쪽수를 3초 안에 갱신, 올해 목표 대비 완독 확인. 방향: Apple/Notion식 절제, 종이와 잉크. 밀도: 중간 */
+/* 2. 토큰 */
+:root{
+  --fs-xs:12px; --fs-s:14px; --fs-m:16px; --fs-l:20px; --fs-xl:28px;
+  --fw-r:400; --fw-m:500; --fw-b:700;
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px; --sp-7:48px;
+  --r-s:6px; --r-m:12px; --r-l:20px; --r-pill:999px;
+  --bg:#FAF8F4; --surface:#FFFFFF; --text:#1C1B19; --text-2:#67645C; --text-3:#A19D94;
+  --line:#E8E4DC; --press:#F0ECE4; --accent:#2F5D50; --accent-weak:#E3ECE8; --on-accent:#FFFFFF;
+  --err:#B3261E; --scrim:rgba(20,18,15,.4);
+  --t-fast:150ms; --t-base:250ms; --ease:cubic-bezier(.2,.8,.2,1);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#141413; --surface:#1E1D1B; --text:#F2F0EB; --text-2:#A8A49B; --text-3:#6F6C65;
+  --line:#2E2C29; --press:#262522; --accent:#86BBA9; --accent-weak:#22332E; --on-accent:#0E1915;
+  --err:#F2857B; --scrim:rgba(0,0,0,.6); color-scheme:dark;
+}}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--text);font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;font-size:var(--fs-m);line-height:1.5;word-break:keep-all;-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+.app{max-width:480px;margin:0 auto;padding:calc(env(safe-area-inset-top) + var(--sp-6)) var(--sp-4) calc(88px + env(safe-area-inset-bottom))}
+header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:var(--sp-5)}
+h1{font-size:var(--fs-xl);font-weight:var(--fw-b);letter-spacing:-.02em;line-height:1.2}
+.year{font-size:var(--fs-s);color:var(--text-2)}
+
+.notice{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3);padding:var(--sp-3) var(--sp-4);margin-bottom:var(--sp-5);background:var(--accent-weak);border-radius:var(--r-m);font-size:var(--fs-s)}
+.notice button{font-weight:var(--fw-m);color:var(--accent);min-height:44px;padding:0 var(--sp-2);white-space:nowrap}
+
+.goal{padding-bottom:var(--sp-5);border-bottom:1px solid var(--line);margin-bottom:var(--sp-5)}
+.goal-top{display:flex;align-items:flex-end;justify-content:space-between}
+.label{font-size:var(--fs-s);color:var(--text-2)}
+.goal-count{font-size:var(--fs-xl);font-weight:var(--fw-b);letter-spacing:-.02em;line-height:1.3}
+.goal-count small{font-size:var(--fs-m);font-weight:var(--fw-r);color:var(--text-2);letter-spacing:0}
+.link{font-size:var(--fs-s);color:var(--accent);font-weight:var(--fw-m);min-height:44px;padding:0 var(--sp-1)}
+.bar{height:4px;background:var(--line);border-radius:var(--r-pill);overflow:hidden;margin-top:var(--sp-3)}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:inherit;transition:width var(--t-base) var(--ease)}
+.goal-hint{font-size:var(--fs-xs);color:var(--text-2);margin-top:var(--sp-2)}
+
+h2{font-size:var(--fs-s);font-weight:var(--fw-b);color:var(--text-2);margin-bottom:var(--sp-1);display:flex;gap:var(--sp-2)}
+h2 span{font-weight:var(--fw-r)}
+section+section{margin-top:var(--sp-6)}
+ul{list-style:none}
+.row{display:grid;grid-template-columns:40px 1fr auto;gap:var(--sp-3);align-items:center;width:100%;text-align:left;padding:var(--sp-3) var(--sp-2);margin:0 calc(var(--sp-2) * -1);width:calc(100% + var(--sp-4));border-radius:var(--r-m);transition:background var(--t-fast)}
+li+li{border-top:1px solid var(--line)}
+.row:active{background:var(--press)}
+.cover{width:40px;height:56px;border-radius:var(--r-s);display:grid;place-items:center;color:#fff;font-weight:var(--fw-b);font-size:var(--fs-m)}
+.meta{min-width:0}
+.title{font-weight:var(--fw-m);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{font-size:var(--fs-s);color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .bar{margin-top:var(--sp-2)}
+.pages{font-size:var(--fs-xs);color:var(--text-2);margin-top:var(--sp-1)}
+.pct{font-size:var(--fs-s);font-weight:var(--fw-m);min-width:40px;text-align:right}
+.done-date{font-size:var(--fs-s);color:var(--text-2)}
+.empty{padding:var(--sp-5) 0;color:var(--text-2);font-size:var(--fs-s)}
+.empty b{display:block;color:var(--text);font-size:var(--fs-m);font-weight:var(--fw-m);margin-bottom:var(--sp-1)}
+
+.dock{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:var(--sp-3) var(--sp-4) calc(var(--sp-3) + env(safe-area-inset-bottom))}
+.dock-in{max-width:448px;margin:0 auto}
+.btn{display:flex;align-items:center;justify-content:center;width:100%;height:52px;border-radius:var(--r-m);background:var(--accent);color:var(--on-accent);font-weight:var(--fw-b);transition:transform var(--t-fast) var(--ease),opacity var(--t-fast)}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.4}
+
+.scrim{position:fixed;inset:0;background:var(--scrim);opacity:0;pointer-events:none;transition:opacity var(--t-base) var(--ease);z-index:10}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;background:var(--surface);border-radius:var(--r-l) var(--r-l) 0 0;padding:var(--sp-2) var(--sp-4) calc(var(--sp-4) + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform var(--t-base) var(--ease);z-index:11;max-height:90vh;overflow:auto;visibility:hidden}
+.open .scrim{opacity:1;pointer-events:auto}
+.open .sheet{transform:none;visibility:visible}
+.grab{width:36px;height:4px;border-radius:var(--r-pill);background:var(--line);margin:0 auto var(--sp-3)}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3);margin-bottom:var(--sp-4)}
+.sheet-head h3{font-size:var(--fs-l);font-weight:var(--fw-b);letter-spacing:-.01em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.x{width:44px;height:44px;margin-right:calc(var(--sp-3) * -1);display:grid;place-items:center;color:var(--text-2);border-radius:var(--r-pill);flex:none}
+.field{margin-bottom:var(--sp-4)}
+.field label{display:block;font-size:var(--fs-s);font-weight:var(--fw-m);margin-bottom:var(--sp-2)}
+.field label span{color:var(--text-2);font-weight:var(--fw-r)}
+.input{display:flex;align-items:center;height:48px;border:1px solid var(--line);border-radius:var(--r-m);padding:0 var(--sp-4);background:var(--bg);transition:border-color var(--t-fast)}
+.input:focus-within{border-color:var(--accent)}
+.input input{flex:1;min-width:0;border:0;background:none;outline:none;height:100%}
+.input .suf{color:var(--text-2);font-size:var(--fs-s);padding-left:var(--sp-2);white-space:nowrap}
+.field.bad .input{border-color:var(--err)}
+.err{display:none;font-size:var(--fs-xs);color:var(--err);margin-top:var(--sp-1)}
+.field.bad .err{display:block}
+.chips{display:flex;gap:var(--sp-2);margin-top:var(--sp-3)}
+.chip{height:36px;padding:0 var(--sp-4);border:1px solid var(--line);border-radius:var(--r-pill);font-size:var(--fs-s);font-weight:var(--fw-m)}
+.chip:active{background:var(--press)}
+.sheet-actions{display:flex;justify-content:space-between;margin-top:var(--sp-2)}
+.text-btn{min-height:44px;padding:0 var(--sp-2);font-size:var(--fs-s);font-weight:var(--fw-m);color:var(--accent)}
+.text-btn.danger{color:var(--err)}
+
+.toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translate(-50%,8px);width:calc(100% - var(--sp-6));max-width:448px;display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3);padding:0 var(--sp-2) 0 var(--sp-4);min-height:48px;background:var(--text);color:var(--bg);border-radius:var(--r-m);font-size:var(--fs-s);opacity:0;pointer-events:none;transition:opacity var(--t-fast),transform var(--t-fast) var(--ease);z-index:20}
+.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{color:var(--bg);font-weight:var(--fw-b);min-height:44px;padding:0 var(--sp-3);opacity:.9}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:0ms!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><h1>독서 기록</h1><span class="year num" id="year"></span></header>
+  <div id="notice"></div>
+  <section class="goal" aria-labelledby="goalLabel">
+    <div class="goal-top">
+      <div>
+        <div class="label" id="goalLabel">올해 완독</div>
+        <div class="goal-count num" id="goalCount"></div>
+      </div>
+      <button class="link" id="editGoal">목표 수정</button>
+    </div>
+    <div class="bar" role="progressbar" id="goalBar" aria-valuemin="0"><i></i></div>
+    <p class="goal-hint" id="goalHint"></p>
+  </section>
+  <section><h2>읽는 중 <span class="num" id="readingN"></span></h2><ul id="reading"></ul></section>
+  <section><h2>올해 다 읽은 책 <span class="num" id="doneN"></span></h2><ul id="done"></ul></section>
+</div>
+
+<div class="dock"><div class="dock-in"><button class="btn" id="addBtn">책 추가</button></div></div>
+
+<div id="layer">
+  <div class="scrim" id="scrim"></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="grab" aria-hidden="true"></div>
+    <div class="sheet-head"><h3 id="sheetTitle"></h3>
+      <button class="x" id="closeSheet" aria-label="닫기"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
+    </div>
+    <form id="sheetBody" novalidate></form>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button id="toastUndo">되돌리기</button></div>
+
+<script>
+const KEY='reading-log-v1', YEAR=new Date().getFullYear();
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,10);
+let storageOK=true, state;
+
+function sample(){
+  const d=(m,day)=>new Date(YEAR,m-1,day).toISOString();
+  return {sample:true,goal:20,books:[
+    {id:uid(),title:'코스모스',author:'칼 세이건',total:584,page:231,status:'reading'},
+    {id:uid(),title:'불편한 편의점',author:'김호연',total:268,page:88,status:'reading'},
+    {id:uid(),title:'소년이 온다',author:'한강',total:216,page:216,status:'done',doneAt:d(10,28)},
+    {id:uid(),title:'아몬드',author:'손원평',total:264,page:264,status:'done',doneAt:d(9,3)},
+    {id:uid(),title:'데미안',author:'헤르만 헤세',total:248,page:248,status:'done',doneAt:d(6,14)},
+    {id:uid(),title:'사피엔스: 유인원에서 사이보그까지, 인간 역사의 대담하고 위대한 질문',author:'유발 하라리',total:636,page:636,status:'done',doneAt:d(3,2)}
+  ]};
+}
+function load(){try{const s=localStorage.getItem(KEY);return s?JSON.parse(s):null}catch(e){storageOK=false;return null}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){storageOK=false}}
+state=load()||sample();
+
+/* 표지: 제목에서 결정되는 차분한 색 — 장식이 아니라 목록에서 책을 빠르게 구분하는 용도 */
+function hue(t){let h=0;for(const c of t)h=(h*31+c.charCodeAt(0))%360;return h}
+function cover(b){return `<span class="cover" style="background:hsl(${hue(b.title)} 28% 42%)" aria-hidden="true">${esc([...b.title.trim()][0]||'?')}</span>`}
+const pct=b=>Math.min(100,Math.round(b.page/b.total*100));
+const md=iso=>{const d=new Date(iso);return `${d.getMonth()+1}월 ${d.getDate()}일`};
+
+function render(){
+  $('#year').textContent=YEAR+'년';
+  let n='';
+  if(state.sample) n+=`<div class="notice"><span>지금 보이는 책은 예시 데이터예요.</span><button data-act="clearSample">지우고 시작</button></div>`;
+  if(!storageOK) n+=`<div class="notice"><span>이 브라우저에서는 기록이 저장되지 않아요.</span></div>`;
+  $('#notice').innerHTML=n;
+
+  const reading=state.books.filter(b=>b.status==='reading');
+  const done=state.books.filter(b=>b.status==='done'&&new Date(b.doneAt).getFullYear()===YEAR).sort((a,b)=>b.doneAt.localeCompare(a.doneAt));
+  const g=state.goal, p=Math.min(100,Math.round(done.length/g*100));
+  $('#goalCount').innerHTML=`${done.length}권 <small>/ 목표 ${g}권</small>`;
+  const bar=$('#goalBar'); bar.firstElementChild.style.width=p+'%';
+  bar.setAttribute('aria-valuemax',g); bar.setAttribute('aria-valuenow',done.length); bar.setAttribute('aria-label',`목표 ${g}권 중 ${done.length}권 완독`);
+  const left=g-done.length, monthsLeft=12-new Date().getMonth();
+  $('#goalHint').textContent=left<=0?'올해 목표를 달성했어요.':`남은 ${left}권 · 한 달에 약 ${Math.ceil(left/monthsLeft)}권이면 달성해요`;
+
+  $('#readingN').textContent=reading.length;
+  $('#reading').innerHTML=reading.length?reading.map(b=>`<li><button class="row" data-act="update" data-id="${b.id}" aria-label="${esc(b.title)}, ${b.total}쪽 중 ${b.page}쪽, 읽은 쪽수 기록">
+    ${cover(b)}<span class="meta"><span class="title" style="display:block">${esc(b.title)}</span><span class="sub" style="display:block">${esc(b.author||'저자 미상')}</span>
+    <span class="bar" style="display:block"><i style="width:${pct(b)}%"></i></span><span class="pages num" style="display:block">${b.page} / ${b.total}쪽</span></span>
+    <span class="pct num">${pct(b)}%</span></button></li>`).join('')
+    :`<li class="empty"><b>읽고 있는 책이 없어요</b>아래 ‘책 추가’로 지금 읽는 책을 등록하세요.</li>`;
+
+  $('#doneN').textContent=done.length;
+  $('#done').innerHTML=done.length?done.map(b=>`<li><button class="row" data-act="doneDetail" data-id="${b.id}">
+    ${cover(b)}<span class="meta"><span class="title" style="display:block">${esc(b.title)}</span><span class="sub" style="display:block">${esc(b.author||'저자 미상')} · ${b.total}쪽</span></span>
+    <span class="done-date">${md(b.doneAt)}</span></button></li>`).join('')
+    :`<li class="empty"><b>아직 올해 다 읽은 책이 없어요</b>첫 완독을 기록하면 여기에 쌓여요.</li>`;
+}
+
+/* 되돌리기 */
+let undoSnap=null, toastT;
+function commit(msg){undoSnap=JSON.stringify(prevSnap);save();render();toast(msg)}
+let prevSnap;
+function snap(){prevSnap=JSON.parse(JSON.stringify(state))}
+function toast(msg){$('#toastMsg').textContent=msg;$('#toast').classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>$('#toast').classList.remove('show'),4000)}
+$('#toastUndo').onclick=()=>{if(undoSnap){state=JSON.parse(undoSnap);undoSnap=null;save();render()}$('#toast').classList.remove('show')};
+
+/* 시트 */
+let lastFocus;
+function openSheet(title,html,onSubmit){
+  lastFocus=document.activeElement;
+  $('#sheetTitle').textContent=title; const f=$('#sheetBody'); f.innerHTML=html; f.onsubmit=e=>{e.preventDefault();onSubmit(f)};
+  document.body.classList.add('open'); $('#sheet').setAttribute('aria-hidden','false');
+  setTimeout(()=>{const i=f.querySelector('input');i?i.focus():$('#closeSheet').focus()},60);
+}
+function closeSheet(){document.body.classList.remove('open');$('#sheet').setAttribute('aria-hidden','true');lastFocus&&lastFocus.focus&&lastFocus.focus()}
+$('#scrim').onclick=closeSheet; $('#closeSheet').onclick=closeSheet;
+document.addEventListener('keydown',e=>{
+  if(!document.body.classList.contains('open'))return;
+  if(e.key==='Escape')closeSheet();
+  if(e.key==='Tab'){const els=[...$('#sheet').querySelectorAll('button,input')];const a=els[0],z=els[els.length-1];
+    if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}}
+});
+const field=(id,label,{suf='',type='text',mode='',ph='',val='',opt=false,err=''}={})=>`<div class="field" id="f-${id}"><label for="${id}">${label}${opt?' <span>(선택)</span>':''}</label>
+  <div class="input"><input id="${id}" name="${id}" type="${type}" ${mode?`inputmode="${mode}"`:''} placeholder="${ph}" value="${esc(val)}" autocomplete="off"><span class="suf">${suf}</span></div><p class="err" id="e-${id}">${err}</p></div>`;
+function bad(id,msg){const f=$('#f-'+id);f.classList.add('bad');$('#e-'+id).textContent=msg;$('#'+id).setAttribute('aria-invalid','true');$('#'+id).focus();return false}
+function clearBad(form){form.querySelectorAll('.field').forEach(f=>f.classList.remove('bad'));form.querySelectorAll('input').forEach(i=>i.removeAttribute('aria-invalid'))}
+const int=v=>/^\d+$/.test(v.trim())?parseInt(v,10):NaN;
+
+function addSheet(){
+  openSheet('책 추가',field('t','제목',{ph:'예: 코스모스'})+field('a','저자',{opt:true})+field('n','전체 쪽수',{mode:'numeric',suf:'쪽',ph:'320'})+field('p','지금까지 읽은 쪽',{mode:'numeric',suf:'쪽',ph:'0',opt:true})+`<button class="btn" type="submit">추가</button>`,f=>{
+    clearBad(f); const t=f.t.value.trim(), a=f.a.value.trim(), n=int(f.n.value), p=f.p.value.trim()===''?0:int(f.p.value);
+    if(!t)return bad('t','제목을 입력해 주세요.');
+    if(!(n>=1&&n<=5000))return bad('n','1에서 5,000 사이의 숫자로 입력해 주세요.');
+    if(!(p>=0&&p<=n))return bad('p',`0에서 ${n} 사이로 입력해 주세요.`);
+    snap(); state.books.unshift({id:uid(),title:t,author:a,total:n,page:p,status:p===n?'done':'reading',doneAt:p===n?new Date().toISOString():undefined});
+    closeSheet(); commit(`‘${t}’을(를) 추가했어요`);
+  });
+}
+function updateSheet(b){
+  openSheet(b.title,field('p','지금 몇 쪽까지 읽었나요?',{mode:'numeric',suf:`/ ${b.total}쪽`,val:b.page})+
+    `<div class="chips" style="margin-top:calc(var(--sp-3) * -1);margin-bottom:var(--sp-5)">${[10,20,50].map(v=>`<button type="button" class="chip" data-add="${v}">+${v}</button>`).join('')}</div>
+    <button class="btn" type="submit">저장</button>
+    <div class="sheet-actions"><button type="button" class="text-btn" data-finish>다 읽었어요</button><button type="button" class="text-btn danger" data-del>삭제</button></div>`,f=>{
+    clearBad(f); const p=int(f.p.value);
+    if(!(p>=0&&p<=b.total))return bad('p',`0에서 ${b.total} 사이로 입력해 주세요.`);
+    snap(); const x=state.books.find(y=>y.id===b.id); x.page=p;
+    if(p===b.total){x.status='done';x.doneAt=new Date().toISOString();closeSheet();commit(`‘${b.title}’ 완독을 기록했어요`)}
+    else{closeSheet();commit(`${p}쪽까지 기록했어요`)}
+  });
+  const f=$('#sheetBody');
+  f.querySelectorAll('[data-add]').forEach(c=>c.onclick=()=>{const cur=int(f.p.value)||0;f.p.value=Math.min(b.total,cur+ +c.dataset.add);clearBad(f)});
+  f.querySelector('[data-finish]').onclick=()=>{snap();const x=state.books.find(y=>y.id===b.id);x.page=x.total;x.status='done';x.doneAt=new Date().toISOString();closeSheet();commit(`‘${b.title}’ 완독을 기록했어요`)};
+  f.querySelector('[data-del]').onclick=()=>{snap();state.books=state.books.filter(y=>y.id!==b.id);closeSheet();commit(`‘${b.title}’을(를) 삭제했어요`)};
+}
+function doneSheet(b){
+  openSheet(b.title,`<p class="label" style="margin-bottom:var(--sp-5)">${esc(b.author||'저자 미상')} · ${b.total}쪽 · ${md(b.doneAt)} 완독</p>
+    <div class="sheet-actions"><button type="button" class="text-btn" data-reopen>다시 읽는 중으로</button><button type="button" class="text-btn danger" data-del>삭제</button></div>`,()=>{});
+  const f=$('#sheetBody');
+  f.querySelector('[data-reopen]').onclick=()=>{snap();const x=state.books.find(y=>y.id===b.id);x.status='reading';delete x.doneAt;closeSheet();commit(`‘${b.title}’을(를) 읽는 중으로 옮겼어요`)};
+  f.querySelector('[data-del]').onclick=()=>{snap();state.books=state.books.filter(y=>y.id!==b.id);closeSheet();commit(`‘${b.title}’을(를) 삭제했어요`)};
+}
+function goalSheet(){
+  openSheet('올해 목표',field('g','몇 권 읽을까요?',{mode:'numeric',suf:'권',val:state.goal})+`<button class="btn" type="submit">저장</button>`,f=>{
+    clearBad(f); const g=int(f.g.value);
+    if(!(g>=1&&g<=365))return bad('g','1에서 365 사이로 입력해 주세요.');
+    snap(); state.goal=g; closeSheet(); commit(`목표를 ${g}권으로 바꿨어요`);
+  });
+}
+
+$('#addBtn').onclick=addSheet; $('#editGoal').onclick=goalSheet;
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]'); if(!el)return;
+  const b=state.books.find(x=>x.id===el.dataset.id);
+  if(el.dataset.act==='update')updateSheet(b);
+  if(el.dataset.act==='doneDetail')doneSheet(b);
+  if(el.dataset.act==='clearSample'){snap();state={sample:false,goal:state.goal,books:[]};commit('예시 데이터를 지웠어요')}
+});
+render();
+</script>
+</body>
+</html>
